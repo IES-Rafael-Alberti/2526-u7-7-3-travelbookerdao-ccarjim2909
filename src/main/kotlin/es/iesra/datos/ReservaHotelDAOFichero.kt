@@ -20,8 +20,8 @@ class ReservaHotelDAOFichero(private val ruta: String) : IReservaHotelDAO {
             if (linea.isNotBlank()) {
                 val reserva = ReservaHotel.creaInstancia(
                     descripcion = linea,
-                    ubicacion = "N/A",
-                    numeroNoches = 1
+                    ubicacion = ,      // cambiar esto y el del vuelo
+                    numeroNoches =     // cambiar esto y el del vuelo
                 )
                 lista.add(reserva)
             }
