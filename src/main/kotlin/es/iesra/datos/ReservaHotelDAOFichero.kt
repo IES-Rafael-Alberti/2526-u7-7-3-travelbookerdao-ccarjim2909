@@ -8,7 +8,7 @@ class ReservaHotelDAOFichero(private val ruta: String) : IReservaHotelDAO {
     private val file = File(ruta)
 
     override fun crear(reserva: ReservaHotel): Boolean {
-        file.appendText(reserva.toString() + "\n")
+        file.appendText("${reserva.descripcion}|${reserva.ubicacion}|${reserva.numeroNoches}\n")
         return true
     }
 
@@ -18,12 +18,14 @@ class ReservaHotelDAOFichero(private val ruta: String) : IReservaHotelDAO {
         val lineas = file.readLines()
         for (linea in lineas) {
             if (linea.isNotBlank()) {
-                val reserva = ReservaHotel.creaInstancia(
-                    descripcion = linea,
-                    ubicacion = ,      // cambiar esto y el del vuelo
-                    numeroNoches =     // cambiar esto y el del vuelo
-                )
-                lista.add(reserva)
+                val parts = linea.split("|")
+                if (parts.size >= 3) {
+                    val descripcion = parts[0]
+                    val ubicacion = parts[1]
+                    val numeroNoches = parts[2].toInt()
+                    val reserva = ReservaHotel.creaInstancia(descripcion, ubicacion, numeroNoches)
+                    lista.add(reserva)
+                }
             }
         }
         return lista
@@ -40,7 +42,7 @@ class ReservaHotelDAOFichero(private val ruta: String) : IReservaHotelDAO {
     }
 
     override fun actualizar(reserva: ReservaHotel): Boolean {
-        val lista = obtenerTodas()
+        val lista = obtenerTodas().toMutableList()
         var encontrado = false
         for (i in lista.indices) {
             if (lista[i].id == reserva.id) {
@@ -54,7 +56,7 @@ class ReservaHotelDAOFichero(private val ruta: String) : IReservaHotelDAO {
         file.writeText("")
 
         for (r in lista) {
-            file.appendText(r.toString() + "\n")
+            file.appendText("${r.descripcion}|${r.ubicacion}|${r.numeroNoches}\n")
         }
 
         return true
@@ -79,7 +81,7 @@ class ReservaHotelDAOFichero(private val ruta: String) : IReservaHotelDAO {
         file.writeText("")
 
         for (r in nuevaLista) {
-            file.appendText(r.toString() + "\n")
+            file.appendText("${r.descripcion}|${r.ubicacion}|${r.numeroNoches}\n")
         }
 
         return true

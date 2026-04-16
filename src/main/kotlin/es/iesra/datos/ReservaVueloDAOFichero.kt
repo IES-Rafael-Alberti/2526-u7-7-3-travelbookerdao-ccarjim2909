@@ -7,50 +7,84 @@ class ReservaVueloDAOFichero(private val ruta: String) : IReservaVueloDAO {
 
     private val file = File(ruta)
 
-    private fun leer(): List<ReservaVuelo> {
-        if (!file.exists()) return emptyList()
-
-        return file.readLines()
-            .filter { it.isNotBlank() }
-            .mapIndexed { _, linea ->
-                ReservaVuelo.creaInstancia(
-                    descripcion = linea,
-                    origen = "N/A",
-                    destino = "N/A",
-                    horaVuelo = "00:00"
-                )
-            }
-    }
-
-    private fun escribir(lista: List<ReservaVuelo>) {
-        file.writeText(lista.joinToString("\n") { it.toString() })
-    }
-
     override fun crear(reserva: ReservaVuelo): Boolean {
-        file.appendText(reserva.toString() + "\n")
+        file.appendText("${reserva.descripcion}|${reserva.origen}|${reserva.destino}|${reserva.horaVuelo}\n")
         return true
     }
 
-    override fun obtenerTodas(): List<ReservaVuelo> = leer()
+    override fun obtenerTodas(): List<ReservaVuelo> {
+        val lista = mutableListOf<ReservaVuelo>()
+        if (!file.exists()) return lista
+        val lineas = file.readLines()
+        for (linea in lineas) {
+            if (linea.isNotBlank()) {
+                val parts = linea.split("|")
+                if (parts.size >= 4) {
+                    val descripcion = parts[0]
+                    val origen = parts[1]
+                    val destino = parts[2]
+                    val horaVuelo = parts[3]
+                    val reserva = ReservaVuelo.creaInstancia(descripcion, origen, destino, horaVuelo)
+                    lista.add(reserva)
+                }
+            }
+        }
+        return lista
+    }
 
-    override fun obtenerPorId(id: Int): ReservaVuelo? =
-        leer().find { it.id == id }
+    override fun obtenerPorId(id: Int): ReservaVuelo? {
+        val lista = obtenerTodas()
+        for (reserva in lista) {
+            if (reserva.id == id) {
+                return reserva
+            }
+        }
+        return null
+    }
 
     override fun actualizar(reserva: ReservaVuelo): Boolean {
-        val lista = leer().toMutableList()
-        val i = lista.indexOfFirst { it.id == reserva.id }
-        if (i == -1) return false
+        val lista = obtenerTodas().toMutableList()
+        var encontrado = false
+        for (i in lista.indices) {
+            if (lista[i].id == reserva.id) {
+                lista[i] = reserva
+                encontrado = true
+                break
+            }
+        }
+        if (!encontrado) return false
 
-        lista[i] = reserva
-        escribir(lista)
+        file.writeText("")
+
+        for (r in lista) {
+            file.appendText("${r.descripcion}|${r.origen}|${r.destino}|${r.horaVuelo}\n")
+        }
+
         return true
     }
 
     override fun eliminar(id: Int): Boolean {
-        val nueva = leer().filter { it.id != id }
-        if (nueva.size == leer().size) return false
 
-        escribir(nueva)
+        val lista = obtenerTodas()
+        val nuevaLista = mutableListOf<ReservaVuelo>()
+        var eliminado = false
+
+        for (r in lista) {
+            if (r.id != id) {
+                nuevaLista.add(r)
+            } else {
+                eliminado = true
+            }
+        }
+
+        if (!eliminado) return false
+
+        file.writeText("")
+
+        for (r in nuevaLista) {
+            file.appendText("${r.descripcion}|${r.origen}|${r.destino}|${r.horaVuelo}\n")
+        }
+
         return true
     }
 }
